@@ -1,18 +1,34 @@
 import json
 import os
+import requests
 
+"""
 print("📁 Current working directory:", os.getcwd())
 print("📄 Files in this directory:", os.listdir())
+"""
 
 """file path"""
 json_file = "animals_data.json"
 html_template_file = "animals_template.html"
 output_file = "animals_output.html"
 
-"""Load an return json file"""
-def load_data(file_path):
-    with open(file_path, "r") as file:
-        return json.load(file)
+""" fetch data from an api if not call json """
+def fetch_animal_data(animal_name):
+    url = f"https://api.api-ninjas.com/v1/animals"
+    headers = {
+        "X-Api-key": "wnskUoJVOwCSgMvLY3QsBg==DIfm2EJM1oWQFYTL"
+    }
+    params = {
+        "name": animal_name
+    }
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching data: {response.status_code}")
+        print(response.text)
+        return []
 
 """Build the html string for all animals"""
 def serialize_animal(animal):
@@ -36,8 +52,19 @@ def serialize_animal(animal):
     )
 
 """path to data file"""
-if os.path.exists(json_file) and os.path.exists(html_template_file):
-    data = load_data(json_file)
+if os.path.exists(html_template_file):
+
+    animal_name = ""
+    while not animal_name:
+        animal_name = input("Enter the name of an animal to search: ").strip().lower()
+        if not animal_name:
+            print("Please emter a valid animal name, ")
+
+    data = fetch_animal_data(animal_name)
+
+    if not data:
+        print(f"No animal found for '{animal_name}'. Try another animal.")
+        exit()
 
     """ html list from individual animal str"""
     """extract skin type """
