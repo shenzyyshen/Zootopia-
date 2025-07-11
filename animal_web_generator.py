@@ -1,6 +1,6 @@
 import json
 import os
-import requests
+import data_fetcher
 
 """
 print("📁 Current working directory:", os.getcwd())
@@ -12,23 +12,6 @@ json_file = "animals_data.json"
 html_template_file = "animals_template.html"
 output_file = "animals_output.html"
 
-""" fetch data from an api if not call json """
-def fetch_animal_data(animal_name):
-    url = f"https://api.api-ninjas.com/v1/animals"
-    headers = {
-        "X-Api-key": "wnskUoJVOwCSgMvLY3QsBg==DIfm2EJM1oWQFYTL"
-    }
-    params = {
-        "name": animal_name
-    }
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error fetching data: {response.status_code}")
-        print(response.text)
-        return []
 
 """Build the html string for all animals"""
 def serialize_animal(animal):
@@ -56,14 +39,27 @@ if os.path.exists(html_template_file):
 
     animal_name = ""
     while not animal_name:
-        animal_name = input("Enter the name of an animal to search: ").strip().lower()
+        animal_name = input("Please enter an animal to search: ").strip().lower()
         if not animal_name:
-            print("Please emter a valid animal name, ")
+            print("Please enter a valid animal name, ")
 
-    data = fetch_animal_data(animal_name)
+    data = data_fetcher.fetch_data(animal_name)
 
     if not data:
-        print(f"No animal found for '{animal_name}'. Try another animal.")
+        message = (
+        f'<h2 style="color: orange; text-align: center;">'
+        f'The animal"{animal_name}" does not exist in our world.'
+        f'</h2>'
+        )
+        with open(html_template_file, "r") as template_file:
+            html_template = template_file.read()
+
+        final_html = html_template.replace("__REPLACE_ANIMALS_INFO__", message)
+
+        with open(output_file, "w") as file:
+            file.write(final_html)
+
+        print(f"No data found.html message generated in '{output_file}'")
         exit()
 
     """ html list from individual animal str"""
